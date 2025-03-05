@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OCR Kamera Otomatis</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/4.0.2/tesseract.min.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+    }
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      background: #121212;
+      color: white;
+      text-align: center;
+      padding: 20px;
+    }
+    .container {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0px 4px 10px rgba(255, 255, 255, 0.2);
+      width: 90%;
+      max-width: 800px;
+    }
+    input, button {
+      margin-top: 10px;
+      padding: 12px;
+      width: 100%;
+      border: none;
+      border-radius: 5px;
+      font-size: 16px;
+    }
+    button {
+      background: #ff9800;
+      color: white;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    button:hover {
+      background: #e68900;
+    }
+    .image-container {
+      margin-top: 15px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #222;
+      border-radius: 5px;
+      overflow: hidden;
+      max-height: 300px;
+    }
+    img, video {
+      max-width: 100%;
+      max-height: 300px;
+      object-fit: contain;
+      display: block;
+    }
+    .progress {
+      margin-top: 15px;
+      font-size: 16px;
+      color: #ff9800;
+    }
+    .result-container {
+      margin-top: 15px;
+      background: #222;
+      padding: 15px;
+      border-radius: 5px;
+      text-align: left;
+    }
+    pre {
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      background: #1a1a1a;
+      padding: 10px;
+      border-radius: 5px;
+    }
+    #video {
+      display: none;
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>OCR Kamera Otomatis</h2>
+    <button id="cameraButton">Gunakan Kamera</button>
+    <video id="video" autoplay></video>
+    <div class="progress">Progress: 0%</div>
+    <div class="image-container">
+      <img id="imagePreview" src="" alt="Image Preview">
+    </div>
+    <div class="result-container">
+      <h3>Hasil OCR:</h3>
+      <pre id="outputText">Hasil OCR akan muncul di sini...</pre>
+      <button id="deleteButton" style="display:none;">Hapus Foto</button>
+    </div>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>
