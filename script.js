@@ -70,13 +70,18 @@ document.addEventListener("DOMContentLoaded", function () {
 
       const data = await response.json();
       if (data.ParsedResults && data.ParsedResults.length > 0) {
-        outputText.innerText = data.ParsedResults[0].ParsedText;
+        const parsedText = data.ParsedResults[0].ParsedText.trim(); // Menghapus spasi sebelum dan sesudah teks
+        if (parsedText.length > 0) {
+          outputText.innerText = parsedText; // Menampilkan teks yang terdeteksi
+        } else {
+          outputText.innerText = "Teks tidak terdeteksi."; // Tampilkan pesan jika teks kosong
+        }
       } else {
-        outputText.innerText = "Gagal membaca teks.";
+        outputText.innerText = "Teks tidak terdeteksi."; // Jika tidak ada hasil parsed dari OCR
       }
     } catch (error) {
       console.error("OCR Error:", error);
-      outputText.innerText = "Gagal membaca teks.";
+      outputText.innerText = "Gagal membaca teks."; // Menampilkan pesan jika ada kesalahan
     }
 
     progress.style.display = "none";

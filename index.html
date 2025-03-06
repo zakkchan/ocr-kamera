@@ -82,6 +82,7 @@
       background: #1a1a1a;
       padding: 10px;
       border-radius: 5px;
+      top: 10px;
     }
     #video {
       display: none;
@@ -91,17 +92,17 @@
 </head>
 <body>
   <div class="container">
-    <h2>OCR Kamera Otomatis</h2>
+    <h2>OCR</h2>
     <button id="cameraButton">Gunakan Kamera</button>
     <video id="video" autoplay></video>
     <div class="progress">Progress: 0%</div>
     <button id="scanImage">Scan Object</button>
     <div class="image-container">
-      <!-- <img id="imagePreview" src="" alt="Image Preview"> -->
+      <img id="imagePreview" src="" alt="">
     </div>
     <div class="result-container">
       <h3>Hasil OCR:</h3>
-      <pre id="outputText">Hasil OCR akan muncul di sini...</pre>
+      <pre id="outputText"><i>Hasil OCR akan muncul di sini</i></pre>
       <button id="deleteButton" style="display:none;">Hapus Foto</button>
     </div>
   </div>
