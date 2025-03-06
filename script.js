@@ -69,7 +69,7 @@ document.addEventListener("DOMContentLoaded", function () {
     outputText.innerText = "Menganalisis teks...";
 
     try {
-      const apiKey = "K84167834388957"; // Ganti dengan API Key kamu
+      const apiKey = "K84167834388957"; //key api ocrspace
       const formData = new FormData();
       formData.append("apikey", apiKey);
       formData.append("base64Image", `data:image/png;base64,${imageBase64}`);
