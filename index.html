@@ -94,6 +94,7 @@
   <div class="container">
     <h2>OCR</h2>
     <button id="cameraButton">Gunakan Kamera</button>
+    <button id="switchCamera" style="display: none;">Ganti Kamera</button>
     <video id="video" autoplay></video>
     <div class="progress">Progress: 0%</div>
     <button id="scanImage">Scan Object</button>
@@ -106,6 +107,8 @@
       <button id="deleteButton" style="display:none;">Hapus Foto</button>
     </div>
   </div>
+
+  <script async src="https://docs.opencv.org/4.5.1/opencv.js"></script>
   <script src="script.js"></script>
 </body>
 </html>

@@ -2,6 +2,7 @@ document.addEventListener("DOMContentLoaded", function () {
   console.log("Script loaded!");
 
   const cameraButton = document.getElementById("cameraButton");
+  const switchButton = document.getElementById("switchCamera");
   const scanButton = document.getElementById("scanImage");
   const deleteButton = document.getElementById("deleteButton");
   const video = document.getElementById("video");
@@ -10,49 +11,60 @@ document.addEventListener("DOMContentLoaded", function () {
   const progress = document.querySelector(".progress");
 
   let stream = null;
+  let usingBackCamera = true;
   const canvas = document.createElement("canvas");
   const ctx = canvas.getContext("2d");
 
-  // Fungsi untuk membuka kamera
-  cameraButton.addEventListener("click", async () => {
+  async function startCamera() {
     try {
-      stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      const constraints = {
+        video: {
+          facingMode: usingBackCamera ? "environment" : "user",
+        },
+      };
+
+      stream = await navigator.mediaDevices.getUserMedia(constraints);
       video.srcObject = stream;
       video.style.display = "block";
       video.play();
       cameraButton.style.display = "none";
       scanButton.style.display = "block";
+      switchButton.style.display = "block";
     } catch (error) {
       console.error("Error membuka kamera:", error);
     }
+  }
+
+  cameraButton.addEventListener("click", startCamera);
+
+  switchButton.addEventListener("click", async () => {
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop());
+    }
+    usingBackCamera = !usingBackCamera;
+    await startCamera();
   });
 
-  // Fungsi untuk menangkap gambar dan melakukan OCR.Space
   scanButton.addEventListener("click", async () => {
     if (!stream) {
       alert("Aktifkan kamera terlebih dahulu");
       return;
     }
 
-    // Ambil gambar dari video
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-    const imageBase64 = canvas.toDataURL("image/png").split(",")[1]; // Ambil Base64 tanpa prefix
+    const imageBase64 = canvas.toDataURL("image/png").split(",")[1];
 
     img.src = canvas.toDataURL("image/png");
     img.style.display = "block";
     video.style.display = "none";
     deleteButton.style.display = "block";
 
-    // Hentikan kamera setelah mengambil gambar
     stream.getTracks().forEach(track => track.stop());
     video.srcObject = null;
     stream = null;
-
     cameraButton.style.display = "block";
-
-    // Mulai proses OCR.Space
     progress.style.display = "block";
     outputText.innerText = "Menganalisis teks...";
 
@@ -61,7 +73,9 @@ document.addEventListener("DOMContentLoaded", function () {
       const formData = new FormData();
       formData.append("apikey", apiKey);
       formData.append("base64Image", `data:image/png;base64,${imageBase64}`);
-      formData.append("language", "eng"); // Bisa diganti "ind" untuk Bahasa Indonesia
+      formData.append("language", "eng");
+      formData.append("isOverlayRequired", true);
+      formData.append("OCREngine", 2);
 
       const response = await fetch("https://api.ocr.space/parse/image", {
         method: "POST",
@@ -70,24 +84,19 @@ document.addEventListener("DOMContentLoaded", function () {
 
       const data = await response.json();
       if (data.ParsedResults && data.ParsedResults.length > 0) {
-        const parsedText = data.ParsedResults[0].ParsedText.trim(); // Menghapus spasi sebelum dan sesudah teks
-        if (parsedText.length > 0) {
-          outputText.innerText = parsedText; // Menampilkan teks yang terdeteksi
-        } else {
-          outputText.innerText = "Teks tidak terdeteksi."; // Tampilkan pesan jika teks kosong
-        }
+        const parsedText = data.ParsedResults[0].ParsedText.trim();
+        outputText.innerText = parsedText.length > 0 ? parsedText : "Teks tidak terdeteksi.";
       } else {
-        outputText.innerText = "Teks tidak terdeteksi."; // Jika tidak ada hasil parsed dari OCR
+        outputText.innerText = "Teks tidak terdeteksi.";
       }
     } catch (error) {
       console.error("OCR Error:", error);
-      outputText.innerText = "Gagal membaca teks."; // Menampilkan pesan jika ada kesalahan
+      outputText.innerText = "Gagal membaca teks.";
     }
 
     progress.style.display = "none";
   });
 
-  // Fungsi untuk menutup kamera dan menghapus gambar
   deleteButton.addEventListener("click", () => {
     if (stream) {
       stream.getTracks().forEach(track => track.stop());
@@ -101,5 +110,6 @@ document.addEventListener("DOMContentLoaded", function () {
     cameraButton.style.display = "block";
     scanButton.style.display = "none";
     deleteButton.style.display = "none";
+    switchButton.style.display = "none";
   });
 });
