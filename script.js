@@ -66,8 +66,16 @@ document.addEventListener("DOMContentLoaded", function () {
     progress.style.display = "block";
     outputText.innerText = "Menganalisis teks...";
 
+    let progressValue = 0;
+    const progressInterval = setInterval(() => {
+      if (progressValue < 95) {
+        progressValue += 5;
+        progress.innerText = `Progress: ${progressValue}%`;
+      }
+    }, 500);
+
     try {
-      const apiKey = "K84167834388957"; // key api OCR.space
+      const apiKey = "K84167834388957";
       const formData = new FormData();
       formData.append("apikey", apiKey);
       formData.append("base64Image", `data:image/png;base64,${imageBase64}`);
@@ -81,11 +89,13 @@ document.addEventListener("DOMContentLoaded", function () {
       });
 
       const data = await response.json();
+      clearInterval(progressInterval);
+      progress.innerText = "Progress: 100%";
+
       if (data.ParsedResults && data.ParsedResults.length > 0) {
         const parsedText = data.ParsedResults[0].ParsedText.trim();
         outputText.innerText = parsedText.length > 0 ? parsedText : "Teks tidak terdeteksi.";
         
-        // Ambil bounding box dari hasil OCR
         if (data.ParsedResults[0].TextOverlay && data.ParsedResults[0].TextOverlay.Lines) {
           const words = data.ParsedResults[0].TextOverlay.Lines.flatMap(line => 
             line.Words.map(word => ({
@@ -104,11 +114,11 @@ document.addEventListener("DOMContentLoaded", function () {
         outputText.innerText = "Teks tidak terdeteksi.";
       }
     } catch (error) {
+      clearInterval(progressInterval);
       console.error("OCR Error:", error);
       outputText.innerText = "Gagal membaca teks.";
+      progress.innerText = "Gagal memproses OCR";
     }
-
-    progress.style.display = "none";
   });
 
   deleteButton.addEventListener("click", () => {
@@ -135,21 +145,18 @@ document.addEventListener("DOMContentLoaded", function () {
       canvas.height = imgElement.height;
       ctx.drawImage(imgElement, 0, 0);
       
-      ctx.strokeStyle = "red"; // Warna kotak
+      ctx.strokeStyle = "red";
       ctx.lineWidth = 2;
       ctx.font = "14px Arial";
-      ctx.fillStyle = "rgba(255, 255, 0, 0.7)"; // Latar belakang teks kuning
+      ctx.fillStyle = "rgba(255, 255, 0, 0.7)";
 
       words.forEach((word) => {
         const { x0, y0, x1, y1 } = word.bbox;
         const padding = 5;
 
-        // Gambar kotak di sekitar teks
         ctx.strokeRect(x0 - padding, y0 - padding, (x1 - x0) + 2 * padding, (y1 - y0) + 2 * padding);
-
-        // Tambahkan latar belakang teks
         ctx.fillRect(x0, y0 - 20, x1 - x0, 20);
-        ctx.fillStyle = "black"; // Warna teks
+        ctx.fillStyle = "black";
         ctx.fillText(word.text, x0 + 2, y0 - 5);
       });
       

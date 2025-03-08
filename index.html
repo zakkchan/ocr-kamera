@@ -41,8 +41,8 @@
       font-size: 16px;
     }
     button {
-      background: #0dfb15;
-      color: white;
+      background: white;
+      color: black;
       cursor: pointer;
       transition: 0.3s;
     }
@@ -68,7 +68,8 @@
     .progress {
       margin-top: 15px;
       font-size: 16px;
-      color: #0dfb15;
+      background-color: white;
+      color: black;
     }
     .result-container {
       margin-top: 15px;
@@ -97,7 +98,7 @@
     <button id="cameraButton">Gunakan Kamera</button>
     <button id="switchCamera" style="display: none;">Ganti Kamera</button>
     <video id="video" autoplay></video>
-    <div class="progress">Progress: 0%</div>
+    <div id="progress" class="progress">Progress: 0%</div>
     <button id="scanImage">Scan Object</button>
     <div class="image-container">
       <img id="imagePreview">
