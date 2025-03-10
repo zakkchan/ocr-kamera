@@ -4,7 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>OCR Kamera Otomatis</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/4.0.2/tesseract.min.js"></script>
+  <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/4.0.2/tesseract.min.js"></script> -->
+  
   <style>
     * {
       margin: 0;
@@ -19,7 +20,7 @@
       justify-content: center;
       min-height: 100vh;
       background: url(pexels-muffin-1595437.jpg);
-      background-size:cover ;
+      background-size: cover;
       color: white;
       text-align: center;
       padding: 20px;
@@ -32,23 +33,21 @@
       width: 90%;
       max-width: 800px;
     }
-    input, button {
+    button {
       margin-top: 10px;
       padding: 12px;
       width: 100%;
       border: none;
       border-radius: 5px;
       font-size: 16px;
-    }
-    button {
       background: white;
       color: black;
       cursor: pointer;
       transition: 0.3s;
     }
     button:hover {
-      color: white;
       background: #080808;
+      color: white;
     }
     .image-container {
       margin-top: 15px;
@@ -66,11 +65,12 @@
       object-fit: contain;
       display: block;
     }
-    .progress {
+    .progress-container {
       margin-top: 15px;
-      font-size: 16px;
-      background-color: white;
-      color: black;
+    }
+    meter {
+      width: 100%;
+      height: 15px;
     }
     .result-container {
       margin-top: 15px;
@@ -85,33 +85,45 @@
       background: #1a1a1a;
       padding: 10px;
       border-radius: 5px;
-      top: 10px;
-    }
-    #video {
-      display: none;
-      width: 100%;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h2>OCR</h2>
+    <h2>OCR Kamera Otomatis</h2>
     <button id="cameraButton">Gunakan Kamera</button>
     <button id="switchCamera" style="display: none;">Ganti Kamera</button>
+    <button id="scanImage" style="display: none;">Scan Object</button>
+
     <video id="video" autoplay></video>
-    <div id="progress" class="progress">Progress: 0%</div>
-    <button id="scanImage">Scan Object</button>
+    
     <div class="image-container">
       <img id="imagePreview">
     </div>
+
+    <div id="statusText" style="
+      position: absolute; 
+      top: 10px; 
+      left: 50%; 
+      transform: translateX(-50%); 
+      background: rgba(0,0,0,0.7); 
+      color: white; 
+      padding: 10px; 
+      border-radius: 5px; 
+      display: none;
+      font-size: 16px;
+      font-weight: bold;
+      z-index: 10;
+    "></div>
+
     <div class="result-container">
       <h3>Hasil OCR:</h3>
-      <pre id="outputText"><i>Hasil OCR akan muncul di sini</i></pre>
+      <pre id="outputText"><i>Hasil OCR akan muncul di sini...</i></pre>
       <button id="deleteButton" style="display:none;">Hapus Foto</button>
     </div>
   </div>
 
-  <script async src="https://docs.opencv.org/4.5.1/opencv.js"></script>
   <script src="script.js"></script>
+  <script async src="https://docs.opencv.org/4.5.1/opencv.js"></script>
 </body>
 </html>
