@@ -142,3 +142,5 @@ document.addEventListener("DOMContentLoaded", function () {
       startCamera();
   });
 });
+
+
