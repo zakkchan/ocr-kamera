@@ -1,166 +1,144 @@
 document.addEventListener("DOMContentLoaded", function () {
-  console.log("Script loaded!");
+  console.log("✅ Script loaded!");
 
   const cameraButton = document.getElementById("cameraButton");
   const switchButton = document.getElementById("switchCamera");
-  const scanButton = document.getElementById("scanImage");
   const deleteButton = document.getElementById("deleteButton");
   const video = document.getElementById("video");
   const img = document.getElementById("imagePreview");
   const outputText = document.getElementById("outputText");
-  const progress = document.querySelector(".progress");
+  const statusText = document.getElementById("statusText");
 
   let stream = null;
   let usingBackCamera = true;
-  const canvas = document.createElement("canvas");
-  const ctx = canvas.getContext("2d");
+  let isCapturing = false;
+  let lastOCRText = "";
 
-  async function startCamera() {
-    try {
+  function startCamera() {
+      console.log("🎥 Membuka kamera...");
+      if (stream) {
+          stream.getTracks().forEach(track => track.stop());
+      }
+
       const constraints = {
-        video: { facingMode: usingBackCamera ? "environment" : "user" }
+          video: { facingMode: usingBackCamera ? "environment" : "user" }
       };
-      
-      stream = await navigator.mediaDevices.getUserMedia(constraints);
-      video.srcObject = stream;
-      video.style.display = "block";
-      video.play();
-      cameraButton.style.display = "none";
-      scanButton.style.display = "block";
-      switchButton.style.display = "block";
-    } catch (error) {
-      console.error("Error membuka kamera:", error);
-    }
+
+      navigator.mediaDevices.getUserMedia(constraints)
+          .then(newStream => {
+              stream = newStream;
+              video.srcObject = stream;
+              video.style.display = "block";
+              img.style.display = "none";
+              cameraButton.style.display = "none";
+              switchButton.style.display = "block";
+              statusText.style.display = "block";
+              deleteButton.style.display = "none";
+              outputText.innerText = "Hasil OCR akan muncul di sini...";
+              statusText.innerText = "📷 Mencari teks...";
+              statusText.style.backgroundColor = "orange";
+
+              video.addEventListener("loadedmetadata", () => {
+                  console.log("📷 Video metadata loaded.");
+                  requestAnimationFrame(checkForText);
+              });
+          })
+          .catch(error => {
+              alert("❌ Tidak dapat mengakses kamera.");
+              console.error("Error membuka kamera:", error);
+          });
   }
 
   cameraButton.addEventListener("click", startCamera);
-
   switchButton.addEventListener("click", async () => {
-    if (stream) {
-      stream.getTracks().forEach(track => track.stop());
-    }
-    usingBackCamera = !usingBackCamera;
-    await startCamera();
+      usingBackCamera = !usingBackCamera;
+      await startCamera();
   });
 
-  scanButton.addEventListener("click", async () => {
-    if (!stream) {
-      alert("Aktifkan kamera terlebih dahulu");
-      return;
-    }
+  function getImageDataFromCanvas(video) {
+      if (video.videoWidth === 0 || video.videoHeight === 0) {
+          return null;
+      }
 
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-    const imageBase64 = canvas.toDataURL("image/png").split(",")[1];
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
 
-    img.src = canvas.toDataURL("image/png");
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      return canvas.toDataURL("image/png"); // Kembalikan base64 image
+  }
+
+  async function checkForText() {
+      if (!stream || isCapturing) {
+          requestAnimationFrame(checkForText);
+          return;
+      }
+
+      let imageData = getImageDataFromCanvas(video);
+      if (!imageData) {
+          requestAnimationFrame(checkForText);
+          return;
+      }
+
+      let detectedText = await runOCR(imageData);
+
+      if (detectedText && detectedText.trim() && detectedText !== lastOCRText) {
+          console.log("📖 Teks terdeteksi! Mengambil gambar...");
+          captureImage(imageData, detectedText);
+          return;
+      }
+
+      requestAnimationFrame(checkForText);
+  }
+
+  function captureImage(imageData, detectedText) {
+    console.log("📸 Mengambil gambar dengan teks:", detectedText);
+    isCapturing = true;
+
+    img.src = imageData;
     img.style.display = "block";
     video.style.display = "none";
     deleteButton.style.display = "block";
+    statusText.style.display = "none";
 
-    stream.getTracks().forEach(track => track.stop());
-    video.srcObject = null;
-    stream = null;
-    cameraButton.style.display = "block";
-    progress.style.display = "block";
-    outputText.innerText = "Menganalisis teks...";
+    outputText.innerText = detectedText;
+    lastOCRText = detectedText;
 
-    let progressValue = 0;
-    const progressInterval = setInterval(() => {
-      if (progressValue < 95) {
-        progressValue += 5;
-        progress.innerText = `Progress: ${progressValue}%`;
-      }
-    }, 500);
-
-    try {
-      const apiKey = "K84167834388957";
-      const formData = new FormData();
-      formData.append("apikey", apiKey);
-      formData.append("base64Image", `data:image/png;base64,${imageBase64}`);
-      formData.append("language", "eng");
-      formData.append("isOverlayRequired", true);
-      formData.append("OCREngine", 2);
-
-      const response = await fetch("https://api.ocr.space/parse/image", {
-        method: "POST",
-        body: formData,
-      });
-
-      const data = await response.json();
-      clearInterval(progressInterval);
-      progress.innerText = "Progress: 100%";
-
-      if (data.ParsedResults && data.ParsedResults.length > 0) {
-        const parsedText = data.ParsedResults[0].ParsedText.trim();
-        outputText.innerText = parsedText.length > 0 ? parsedText : "Teks tidak terdeteksi.";
-        
-        if (data.ParsedResults[0].TextOverlay && data.ParsedResults[0].TextOverlay.Lines) {
-          const words = data.ParsedResults[0].TextOverlay.Lines.flatMap(line => 
-            line.Words.map(word => ({
-              text: word.WordText,
-              bbox: {
-                x0: word.Left,
-                y0: word.Top,
-                x1: word.Left + word.Width,
-                y1: word.Top + word.Height
-              }
-            }))
-          );
-          drawBoundingBoxes(words);
-        }
-      } else {
-        outputText.innerText = "Teks tidak terdeteksi.";
-      }
-    } catch (error) {
-      clearInterval(progressInterval);
-      console.error("OCR Error:", error);
-      outputText.innerText = "Gagal membaca teks.";
-      progress.innerText = "Gagal memproses OCR";
+    if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+        stream = null; // Pastikan stream dihapus setelah berhenti
     }
-  });
+}
+
+
+  async function runOCR(imageData) {
+      console.log("📖 Memproses OCR...");
+      const formData = new FormData();
+      formData.append("apikey", "K88783416288957");
+      formData.append("base64Image", imageData);
+      formData.append("language", "eng");
+
+      try {
+          const response = await fetch("https://api.ocr.space/parse/image", {
+              method: "POST",
+              body: formData,
+          });
+
+          const data = await response.json();
+          let extractedText = data.ParsedResults?.[0]?.ParsedText || "";
+          console.log("OCR Result:", extractedText);
+          return extractedText;
+      } catch (error) {
+          console.error("❌ Error saat OCR:", error);
+          return "";
+      }
+  }
 
   deleteButton.addEventListener("click", () => {
-    if (stream) {
-      stream.getTracks().forEach(track => track.stop());
-      video.srcObject = null;
-      stream = null;
-    }
-    video.style.display = "none";
-    img.style.display = "none";
-    outputText.innerText = "Hasil OCR akan muncul di sini...";
-    progress.innerText = "Progress: 0%";
-    cameraButton.style.display = "block";
-    scanButton.style.display = "none";
-    deleteButton.style.display = "none";
-    switchButton.style.display = "none";
+      console.log("🗑️ Gambar dihapus, kembali ke mode kamera...");
+      isCapturing = false; // Biarkan sistem kembali mencari teks lagi
+      startCamera();
   });
-
-  function drawBoundingBoxes(words) {
-    const imgElement = document.createElement("img");
-    imgElement.src = img.src;
-    imgElement.onload = function () {
-      canvas.width = imgElement.width;
-      canvas.height = imgElement.height;
-      ctx.drawImage(imgElement, 0, 0);
-      
-      ctx.strokeStyle = "red";
-      ctx.lineWidth = 2;
-      ctx.font = "14px Arial";
-      ctx.fillStyle = "rgba(255, 255, 0, 0.7)";
-
-      words.forEach((word) => {
-        const { x0, y0, x1, y1 } = word.bbox;
-        const padding = 5;
-
-        ctx.strokeRect(x0 - padding, y0 - padding, (x1 - x0) + 2 * padding, (y1 - y0) + 2 * padding);
-        ctx.fillRect(x0, y0 - 20, x1 - x0, 20);
-        ctx.fillStyle = "black";
-        ctx.fillText(word.text, x0 + 2, y0 - 5);
-      });
-      
-      img.src = canvas.toDataURL("image/png");
-    };
-  }
 });
