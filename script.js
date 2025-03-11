@@ -3,6 +3,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const cameraButton = document.getElementById("cameraButton");
     const switchButton = document.getElementById("switchCamera");
+    const buttonLanjut = document.getElementById("buttonLanjut");
     const deleteButton = document.getElementById("deleteButton");
     const video = document.getElementById("video");
     const img = document.getElementById("imagePreview");
@@ -33,6 +34,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 cameraButton.style.display = "none";
                 switchButton.style.display = "block";
                 statusText.style.display = "block";
+                buttonLanjut.style.display = "none";
                 deleteButton.style.display = "none";
                 outputText.innerText = "Hasil OCR akan muncul di sini...";
                 statusText.innerText = "📷 Mencari teks...";
@@ -150,21 +152,11 @@ document.addEventListener("DOMContentLoaded", function () {
         img.src = imageData;
         img.style.display = "block";
         video.style.display = "none";
+        buttonLanjut.style.display = "block";
         deleteButton.style.display = "block";
         statusText.style.display = "none";
 
         outputText.innerText = detectedText;
-
-        // Menampilkan tombol lanjut jika teks OCR ada
-        const buttonLanjut = document.getElementById("buttonLanjut");
-        if (detectedText.trim() !== "") {
-            console.log("✅ Menampilkan tombol lanjut");
-            buttonLanjut.style.display = "block";
-        } else {
-            console.log("❌ Tidak ada teks, tombol lanjut disembunyikan");
-            buttonLanjut.style.display = "none";
-        }
-    
 
         if (stream) {
             stream.getTracks().forEach(track => track.stop());
@@ -194,6 +186,11 @@ document.addEventListener("DOMContentLoaded", function () {
             return "";
         }
     }
+
+    buttonLanjut.addEventListener("click", () =>{
+        console.log("Lanjut Kehalaman Berikutnya");
+        window.location.href = "lanjut.html";
+    });
 
     deleteButton.addEventListener("click", () => {
         console.log("🗑️ Gambar dihapus, kembali ke mode kamera...");
