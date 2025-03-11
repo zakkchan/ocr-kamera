@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OCR Kamera Otomatis</title>
+  <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/4.0.2/tesseract.min.js"></script> -->
+  <link rel="stylesheet" href="index.css">
+</head>
+<body>
+  <div class="container">
+    <h2>OCR Kamera Otomatis</h2>
+    <button id="cameraButton">Gunakan Kamera</button>
+    <button id="switchCamera" style="display: none;">Ganti Kamera</button>
+    <button id="scanImage" style="display: none;">Scan Object</button>
+
+    <video id="video" autoplay></video>
+    
+    <div class="image-container">
+      <img id="imagePreview">
+    </div>
+
+    <div class="statustext" id="statusText"></div>
+
+    <div class="result-container">
+      <h3>Hasil OCR:</h3>
+      <pre id="outputText"><i>Hasil OCR akan muncul di sini...</i></pre>
+      <button id="deleteButton" style="display:none;">Ulang/Hapus</button>
+      <button id="buttonKembali">Kembali</button>
+    </div>
+  </div>
+
+  <script src="lanjut.js"></script>
+  <script async src="https://docs.opencv.org/4.5.1/opencv.js"></script>
+</body>
+</html>
