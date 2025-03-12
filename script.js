@@ -147,7 +147,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     async function postData(body) {
-        const endpoint = 'http://localhost:3000/plates'
+        const endpoint = 'https://api.sken.web.id:3000/plates'
         try {
             const res = await fetch(endpoint, {
                 method: 'POST',
