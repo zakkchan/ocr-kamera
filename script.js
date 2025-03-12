@@ -74,25 +74,25 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function hasSignificantChange(newFrame, oldFrame) {
         if (!oldFrame) return true; // Jika belum ada frame sebelumnya, anggap berubah
-    
+
         let diffCount = 0;
         let totalPixels = newFrame.data.length / 4; // Total jumlah piksel
         let sampleRate = 10; // Cek setiap 10 piksel untuk efisiensi
         let threshold = totalPixels * 0.05; // Jika lebih dari 5% piksel berubah, anggap signifikan
-    
+
         for (let i = 0; i < newFrame.data.length; i += 4 * sampleRate) {
             let rDiff = Math.abs(newFrame.data[i] - oldFrame.data[i]);
             let gDiff = Math.abs(newFrame.data[i + 1] - oldFrame.data[i + 1]);
             let bDiff = Math.abs(newFrame.data[i + 2] - oldFrame.data[i + 2]);
-    
+
             if (rDiff > 15 || gDiff > 15 || bDiff > 15) {
                 diffCount++;
                 if (diffCount > threshold) return true; // Jika perbedaan signifikan, return true
             }
         }
-    
+
         return false;
-    }    
+    }
 
     function checkFrameChanges() {
         if (!stream || isProcessingOCR) {
@@ -119,21 +119,21 @@ document.addEventListener("DOMContentLoaded", function () {
 
     async function processOCR(frameData) {
         if (!stream || isProcessingOCR) return;
-    
+
         isProcessingOCR = true;
         let imageData = getImageFromFrame(frameData);
         let detectedText = await runOCR(imageData);
-    
+
         if (detectedText && detectedText.trim()) {
             console.log("📖 Teks terdeteksi! Mengambil gambar...");
             captureImage(imageData, detectedText);
         } else {
             console.log("❌ Tidak ada teks terdeteksi, tetap mencari...");
         }
-    
+
         isProcessingOCR = false;
     }
-    
+
 
     function getImageFromFrame(frameData) {
         const canvas = document.createElement("canvas");
@@ -146,8 +146,28 @@ document.addEventListener("DOMContentLoaded", function () {
         return canvas.toDataURL("image/png");
     }
 
+    async function postData(body) {
+        const endpoint = 'http://localhost:3000/plates'
+        try {
+            const res = await fetch(endpoint, {
+                method: 'POST',
+                body: JSON.stringify({
+                    plate_raw: body
+                }),
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            const data = await res.json()
+            console.log(data)
+        } catch (err) {
+            console.error(err)
+        }
+    }
+
     function captureImage(imageData, detectedText) {
         console.log("📸 Mengambil gambar dengan teks:", detectedText);
+        postData(detectedText)
 
         img.src = imageData;
         img.style.display = "block";
@@ -187,7 +207,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    buttonLanjut.addEventListener("click", () =>{
+    buttonLanjut.addEventListener("click", () => {
         console.log("Lanjut Kehalaman Berikutnya");
         window.location.href = "lanjut.html";
     });
