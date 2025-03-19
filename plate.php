@@ -24,10 +24,10 @@
                 <h2 style="text-align: center;">Plate Number Scan</h2>
                 <div style="display: flex; flex-direction: column; gap: 5px 0;">
                     <div class="result-container" style="background-color: #3E3F5B; color: white; border-radius: 3px; padding: 10px;">
-                        <video id="video" autoplay style="width: 400px;"></video>
-                        <!-- <div class="image-container">
-                            <img id="imagePreview">
-                        </div> -->
+                        <video id="video" autoplay style="width: 400px;">Your browser not support this feature. Please update browser.</video>
+                        <div>
+                            <img style="width: 400px;" id="imagePreview">
+                        </div>
                         <h3 style="margin-top: 10px; display: flex; gap: 0 5px;">Scan Result :
                             <pre id="outputText"></pre>
                         </h3>
@@ -43,183 +43,170 @@
     <script async src="https://docs.opencv.org/4.5.1/opencv.js"></script>
 
     <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            const cameraButton = document.getElementById("cameraButton");
-            const switchButton = document.getElementById("switchCamera");
-            const scanButton = document.getElementById("scanImage");
-            const deleteButton = document.getElementById("deleteButton");
-            const video = document.getElementById("video");
-            const img = document.getElementById("imagePreview");
-            const outputText = document.getElementById("outputText");
-            const progress = document.querySelector(".progress");
+       document.addEventListener("DOMContentLoaded", function () {
+    console.log("Script loaded!");
+  
+    // const switchButton = document.getElementById("switchCamera");
+    const scanButton = document.getElementById("scanImage");
+    // const deleteButton = document.getElementById("deleteButton");
+    const video = document.getElementById("video");
+    const img = document.getElementById("imagePreview");
+    const outputText = document.getElementById("outputText");
+    // const progress = document.querySelector(".progress");
 
-            let stream = null;
-            let usingBackCamera = true;
-            const canvas = document.createElement("canvas");
-            const ctx = canvas.getContext("2d");
+    let stream = null;
+    let usingBackCamera = true;
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
 
-            async function startCamera() {
-                try {
-                    const constraints = {
-                        video: {
-                            facingMode: usingBackCamera ? "environment" : "user"
-                        },
-                    };
+    async function startCamera() {
+        try {
+            const constraints = {
+                video: { facingMode: usingBackCamera ? "environment" : "user" }
+            };
 
-                    stream = await navigator.mediaDevices.getUserMedia(constraints);
-                    video.srcObject = stream;
-                    video.style.display = "block";
-                    video.play();
-                } catch (error) {
-                    console.error("Error membuka kamera:", error);
-                }
-            }
-            startCamera();
+            stream = await navigator.mediaDevices.getUserMedia(constraints);
+            video.srcObject = stream;
+            video.autoplay = true;  // 🔥 Kamera otomatis menyala
+            video.style.display = "block";
+            scanButton.style.display = "block";
+            // switchButton.style.display = "block";
+        } catch (error) {
+            console.error("Error membuka kamera:", error);
+        }
+    }
 
-            //   switchButton.addEventListener("click", async () => {
-            //     if (stream) {
-            //       stream.getTracks().forEach((track) => track.stop());
-            //     }
-            //     usingBackCamera = !usingBackCamera;
-            //     await startCamera();
-            //   });
+    // 📸 Panggil kamera otomatis saat halaman dimuat
+    startCamera();
 
-            scanButton.addEventListener("click", async () => {
-                if (!stream) {
-                    alert("Aktifkan kamera terlebih dahulu");
-                    return;
-                }
+    // switchButton.addEventListener("click", async () => {
+    //     if (stream) {
+    //         stream.getTracks().forEach(track => track.stop());
+    //     }
+    //     usingBackCamera = !usingBackCamera;
+    //     await startCamera();
+    // });
 
-                canvas.width = video.videoWidth;
-                canvas.height = video.videoHeight;
-                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-                const imageBase64 = canvas.toDataURL("image/png").split(",")[1];
+    scanButton.addEventListener("click", async () => {
+        if (!stream) {
+            alert("Aktifkan kamera terlebih dahulu");
+            return;
+        }
 
-                img.src = canvas.toDataURL("image/png");
-                img.style.display = "block";
-                video.style.display = "none";
-                deleteButton.style.display = "block";
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const imageBase64 = canvas.toDataURL("image/png").split(",")[1];
 
-                stream.getTracks().forEach((track) => track.stop());
-                video.srcObject = null;
-                stream = null;
-                cameraButton.style.display = "block";
-                progress.style.display = "block";
-                outputText.innerText = "Menganalisis teks...";
+        img.src = canvas.toDataURL("image/png");
+        img.style.display = "block";
+        video.style.display = "none";
+        // deleteButton.style.display = "block";
 
-                let progressValue = 0;
-                const progressInterval = setInterval(() => {
-                    if (progressValue < 95) {
-                        progressValue += 5;
-                        progress.innerText = `Progress: ${progressValue}%`;
-                    }
-                }, 500);
+        stream.getTracks().forEach(track => track.stop());
+        video.srcObject = null;
+        stream = null;
+        // progress.style.display = "block";
+        outputText.innerText = "Menganalisis teks...";
 
-                try {
-                    const apiKey = "K84167834388957";
-                    const formData = new FormData();
-                    formData.append("apikey", apiKey);
-                    formData.append("base64Image", `data:image/png;base64,${imageBase64}`);
-                    formData.append("language", "eng");
-                    formData.append("isOverlayRequired", true);
-                    formData.append("OCREngine", 2);
+        // let progressValue = 0;
+        // const progressInterval = setInterval(() => {
+        //     if (progressValue < 95) {
+        //         progressValue += 5;
+        //         progress.innerText = `Progress: ${progressValue}%`;
+        //     }
+        // }, 500);
 
-                    const response = await fetch("https://api.ocr.space/parse/image", {
-                        method: "POST",
-                        body: formData,
-                    });
+        try {
+            const apiKey = "K84167834388957";
+            const formData = new FormData();
+            formData.append("apikey", apiKey);
+            formData.append("base64Image", `data:image/png;base64,${imageBase64}`);
+            formData.append("language", "eng");
+            formData.append("isOverlayRequired", true);
+            formData.append("OCREngine", 2);
 
-                    const data = await response.json();
-                    clearInterval(progressInterval);
-                    progress.innerText = "Progress: 100%";
-
-                    if (data.ParsedResults && data.ParsedResults.length > 0) {
-                        const parsedText = data.ParsedResults[0].ParsedText.trim();
-                        outputText.innerText =
-                            parsedText.length > 0 ? parsedText : "Teks tidak terdeteksi.";
-
-                        if (
-                            data.ParsedResults[0].TextOverlay &&
-                            data.ParsedResults[0].TextOverlay.Lines
-                        ) {
-                            const words = data.ParsedResults[0].TextOverlay.Lines.flatMap(
-                                (line) =>
-                                line.Words.map((word) => ({
-                                    text: word.WordText,
-                                    bbox: {
-                                        x0: word.Left,
-                                        y0: word.Top,
-                                        x1: word.Left + word.Width,
-                                        y1: word.Top + word.Height,
-                                    },
-                                }))
-                            );
-                            drawBoundingBoxes(words);
-                        }
-                    } else {
-                        outputText.innerText = "Teks tidak terdeteksi.";
-                    }
-                } catch (error) {
-                    clearInterval(progressInterval);
-                    console.error("OCR Error:", error);
-                    outputText.innerText = "Gagal membaca teks.";
-                    progress.innerText = "Gagal memproses OCR";
-                }
+            const response = await fetch("https://api.ocr.space/parse/image", {
+                method: "POST",
+                body: formData,
             });
 
-            // deleteButton.addEventListener("click", () => {
-            //     if (stream) {
-            //         stream.getTracks().forEach((track) => track.stop());
-            //         video.srcObject = null;
-            //         stream = null;
-            //     }
-            //     video.style.display = "none";
-            //     img.style.display = "none";
-            //     outputText.innerText = "Hasil OCR akan muncul di sini...";
-            //     progress.innerText = "Progress: 0%";
-            //     cameraButton.style.display = "block";
-            //     scanButton.style.display = "none";
-            //     deleteButton.style.display = "none";
-            //     switchButton.style.display = "none";
-            // });
+            const data = await response.json();
+            // clearInterval(progressInterval);
+            // progress.innerText = "Progress: 100%";
 
-            function drawBoundingBoxes(words) {
-                const imgElement = document.createElement("img");
-                imgElement.src = img.src;
-                imgElement.onload = function() {
-                    canvas.width = imgElement.width;
-                    canvas.height = imgElement.height;
-                    ctx.drawImage(imgElement, 0, 0);
+            if (data.ParsedResults && data.ParsedResults.length > 0) {
+                const parsedText = data.ParsedResults[0].ParsedText.trim();
+                outputText.innerText = parsedText.length > 0 ? parsedText : "Teks tidak terdeteksi.";
 
-                    ctx.strokeStyle = "red";
-                    ctx.lineWidth = 2;
-                    ctx.font = "14px Arial";
-                    ctx.fillStyle = "rgba(255, 255, 0, 0.7)";
-
-                    words.forEach((word) => {
-                        const {
-                            x0,
-                            y0,
-                            x1,
-                            y1
-                        } = word.bbox;
-                        const padding = 5;
-
-                        ctx.strokeRect(
-                            x0 - padding,
-                            y0 - padding,
-                            x1 - x0 + 2 * padding,
-                            y1 - y0 + 2 * padding
-                        );
-                        ctx.fillRect(x0, y0 - 20, x1 - x0, 20);
-                        ctx.fillStyle = "black";
-                        ctx.fillText(word.text, x0 + 2, y0 - 5);
-                    });
-
-                    img.src = canvas.toDataURL("image/png");
-                };
+                if (data.ParsedResults[0].TextOverlay && data.ParsedResults[0].TextOverlay.Lines) {
+                    const words = data.ParsedResults[0].TextOverlay.Lines.flatMap(line =>
+                        line.Words.map(word => ({
+                            text: word.WordText,
+                            bbox: {
+                                x0: word.Left,
+                                y0: word.Top,
+                                x1: word.Left + word.Width,
+                                y1: word.Top + word.Height
+                            }
+                        }))
+                    );
+                    drawBoundingBoxes(words);
+                }
+            } else {
+                outputText.innerText = "Teks tidak terdeteksi.";
             }
-        });
+        } catch (error) {
+            clearInterval(progressInterval);
+            console.error("OCR Error:", error);
+            outputText.innerText = "Gagal membaca teks.";
+            progress.innerText = "Gagal memproses OCR";
+        }
+    });
+
+    // deleteButton.addEventListener("click", () => {
+    //     if (stream) {
+    //         stream.getTracks().forEach(track => track.stop());
+    //         video.srcObject = null;
+    //         stream = null;
+    //     }
+    //     video.style.display = "none";
+    //     img.style.display = "none";
+    //     outputText.innerText = "Hasil OCR akan muncul di sini...";
+    //     progress.innerText = "Progress: 0%";
+    //     scanButton.style.display = "none";
+    //     deleteButton.style.display = "none";
+    //     // switchButton.style.display = "none";`
+    // });
+
+    function drawBoundingBoxes(words) {
+        const imgElement = document.createElement("img");
+        imgElement.src = img.src;
+        imgElement.onload = function () {
+            canvas.width = imgElement.width;
+            canvas.height = imgElement.height;
+            ctx.drawImage(imgElement, 0, 0);
+
+            ctx.strokeStyle = "red";
+            ctx.lineWidth = 2;
+            ctx.font = "14px Arial";
+            ctx.fillStyle = "rgba(255, 255, 0, 0.7)";
+
+            words.forEach((word) => {
+                const { x0, y0, x1, y1 } = word.bbox;
+                const padding = 5;
+
+                ctx.strokeRect(x0 - padding, y0 - padding, (x1 - x0) + 2 * padding, (y1 - y0) + 2 * padding);
+                ctx.fillRect(x0, y0 - 20, x1 - x0, 20);
+                ctx.fillStyle = "black";
+                ctx.fillText(word.text, x0 + 2, y0 - 5);
+            });
+
+            img.src = canvas.toDataURL("image/png");
+        };
+    }
+});
+
     </script>
 </body>
 
